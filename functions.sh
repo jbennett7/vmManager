@@ -284,9 +284,9 @@ function definePrimaryNetwork {
 
 function undefinePrimaryNetwork {
   if primaryNetworkRunning;then
-    virsh net-destroy primary
+    virsh net-destroy primary > ${OUTPUT}
   fi
-  virsh net-undefine primary
+  virsh net-undefine primary > ${OUTPUT}
 }
 
 function snet {
