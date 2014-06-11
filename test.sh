@@ -12,10 +12,11 @@ function generateKickstartFileTest1 {
 
   diff /tmp/test1.cfg /var/www/html/test1.cfg
   [ "$?" == "0" ] && echo "PASSED" || echo "NOT PASSED"
-  rm -f /tmp/test1.cfg
-  rm -f /var/www/html/test1.cfg
+  rm -vf /tmp/test1.cfg
+  rm -vf /var/www/html/test1.cfg
 }
-generateKickstartFileTest1
+
+generateKickstartFile rails ${SM}
 
 function generateKickstartFileTest2 {
   generateKickstartFile test1 ${SM}

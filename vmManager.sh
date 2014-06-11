@@ -1,6 +1,6 @@
 #!/bin/bash
 source ~/virsh-devel/functions.sh
-SM="~/subscription_manager.sed"
+SM="/root/subscription_manager.sed"
 if [ "${0}" != "vmManager.sh" ];then
   subcommand=$(basename ${0})
 elif [ -n ${1} ];then
