@@ -274,6 +274,14 @@ function definePrimaryNetwork {
   done
   echo "    <txt name='example' value='example value'/>" \
     >> /tmp/primary.xml
+  echo "    <host ip='192.168.122.1' netmask='255.255.255.0'>" \
+    >> /tmp/primary.xml
+  echo "      <hostname>host</hostname>" \
+    >> /tmp/primary.xml
+  echo "      <hostname>host.example.com</hostname>" \
+    >> /tmp/primary.xml
+  echo "    </host>"  \
+    >> /tmp/primary.xml
   echo "  </dns>" \
     >> /tmp/primary.xml
   pnetend >> /tmp/primary.xml
