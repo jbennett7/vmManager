@@ -262,9 +262,19 @@ cat <<PNETEND
 PNETEND
 }
 
+function undefinePrimaryNetwork {
+  if primaryNetworkRunning; then
+    virsh net-destroy primary > ${OUTPUT}
+  fi
+  virsh net-undefine primary > ${OUTPUT}
+}
+
 #TODO: This needs to be cleaned up
 #TODO: Maybe use net-create instead of net-define?
 function definePrimaryNetwork {
+  if primaryNetworkExist; then
+    undefinePrimaryNetwork
+  fi 
   pnetstart > /tmp/primary.xml
   echo "  <dns>" >> /tmp/primary.xml
   for i in $(cat /etc/resolv.conf | \
@@ -288,13 +298,6 @@ function definePrimaryNetwork {
   virsh net-define /tmp/primary.xml > ${OUTPUT}
   virsh net-start primary > ${OUTPUT}
   rm -f /tmp/primary.xml
-}
-
-function undefinePrimaryNetwork {
-  if primaryNetworkRunning;then
-    virsh net-destroy primary > ${OUTPUT}
-  fi
-  virsh net-undefine primary > ${OUTPUT}
 }
 
 function snet {
