@@ -10,9 +10,14 @@ fi
 
 case "${subcommand}" in
 
+  #TODO: The disk size ${3} parameter needs to have a suffix (G,M...).
+  #      Need to check for this.
   vmbuild)
     vmname=${1} && numberOfDisks=${2} && sizeOfDisk=${3}
-    if vMExist ${vmname};then
+    if [ "$#" -ne 3 ]; then
+      echo "Usage: vmbuild vmname numberOfDisks sizeOfDisk"
+      exit
+    elif vMExist ${vmname};then
       echo "vm ${vmname} already exists, destroy it first"
       exit
     fi
@@ -31,7 +36,9 @@ case "${subcommand}" in
 
   vmdestroy)
     vmname=${1}
-    if ! vMExist ${vmname};then
+    if [ "$#" -ne 1 ];then
+      echo "Usage vmdestroy vmname"
+    elif ! vMExist ${vmname};then
       exit
     fi
     if vMRunning ${vmname};then

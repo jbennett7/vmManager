@@ -82,14 +82,14 @@ LABEL one
   MENU LABEL RHEL6
     kernel vmlinuz
     append initrd=initrd.img ks=http://192.168.122.1/_VMNAME_.cfg ksdevice=eth0 noipv6
- defineVM
 PXE
 }
 
 #TODO: Clean this up
+#TODO: Define a mechanism to define the number of cpus and memory
 function defineVM {
   vmname=${1} && numberOfDisks=${2} && sizeOfDisk=${3}
-  bstr="virt-install --noautoconsole --name ${vmname} --memory 2048"
+  bstr="virt-install --noautoconsole --name ${vmname} --memory 2048 --vcpus 2"
   bstr=${bstr}" --network network:primary"
   bstr=${bstr}" --pxe"
   for ((diskNumber=1;diskNumber<=${numberOfDisks};diskNumber++));do
