@@ -1,7 +1,7 @@
 #!/bin/bash
 
-imageDirectory="/var/lib/libvirt/images"
-kickstartDirectory="/var/www/html"
+IMAGE_DIRECTORY="/var/lib/libvirt/images"
+KICKSTART_DIRECTORY="/var/www/html"
 
 if [ ${DEBUG} ];then
   OUTPUT=/dev/tty
@@ -9,7 +9,7 @@ else
   OUTPUT=/dev/null
 fi
 
-function vMTestFunction {
+function vm_test_function {
   echo "This is the test function1" > ${OUTPUT}
 }
 
@@ -21,19 +21,19 @@ Joseph Bennett
 USAGE
 }
 
-function scanForRunningVMs {
+function scan_for_running_vms {
   for vm in $(virsh list | grep -vE "Name|^-|^$" | awk '{print $2}');do
     echo ${vm}
   done
 }
 
-function scanForVMs {
+function scan_for_vms {
   for vm in $(virsh list --all | grep -vE "Name|^-|^$" | awk '{print $2}');do
     echo ${vm}
   done
 }
 
-function vMExist {
+function vm_exist {
   vmname=${1}
   if virsh list --all | grep " ${vmname} " > /dev/null;then
     return 0
@@ -42,7 +42,7 @@ function vMExist {
   fi
 }
 
-function vMRunning {
+function vm_running {
   vmname=${1}
   if virsh list | grep " ${vmname} " > /dev/null;then
     return 0
@@ -51,28 +51,28 @@ function vMRunning {
   fi
 }
 
-function startVM {
+function start_vm {
   vmname=${1}
-  if [ ! $(vMExist ${vmname}) ];then
+  if [ ! $(vm_exist ${vmname}) ];then
     virsh start ${vmname} > ${OUTPUT}
   fi
 }
 
-function stopVM {
+function stop_vm {
   vmname=${1}
-  if [ $(vMExist ${vmname}) -a $(vMRunning ${vmname}) ];then
+  if [ $(vm_exist ${vmname}) -a $(vm_running ${vmname}) ];then
     virsh shutdown ${vmname} > ${OUTPUT}
   fi
 }
 
-function poweroffVM {
+function power_off_vm {
   vmname=${1}
-  if [ $(vMExist ${vmname}) -a $(vMRunning ${vmname}) ];then
+  if [ $(vm_exist ${vmname}) -a $(vm_running ${vmname}) ];then
     virsh destroy ${vmname} > ${OUTPUT}
   fi
 }
 
-function pxeMenu {
+function pxe_menu {
 cat <<PXE
 default one
 prompt 1
@@ -87,31 +87,31 @@ PXE
 
 #TODO: Clean this up
 #TODO: Define a mechanism to define the number of cpus and memory
-function defineVM {
+function define_vm {
   vmname=${1} && numberOfDisks=${2} && sizeOfDisk=${3}
   bstr="virt-install --noautoconsole --name ${vmname} --memory 2048 --vcpus 2"
   bstr=${bstr}" --network network:primary"
   bstr=${bstr}" --pxe"
   for ((diskNumber=1;diskNumber<=${numberOfDisks};diskNumber++));do
     qemu-img create -f qcow2 -o size=${sizeOfDisk} \
-      ${imageDirectory}/${vmname}-${diskNumber}.qcow2
-    bstr=${bstr}" --disk ${imageDirectory}/${vmname}-${diskNumber}.qcow2,bus=virtio"
+      ${IMAGE_DIRECTORY}/${vmname}-${diskNumber}.qcow2
+    bstr=${bstr}" --disk ${IMAGE_DIRECTORY}/${vmname}-${diskNumber}.qcow2,bus=virtio"
   done
   eval ${bstr}
-  pxeMenu | sed -e 's/_VMNAME_/'${vmname}'/' \
+  pxe_menu | sed -e 's/_VMNAME_/'${vmname}'/' \
     > /var/lib/tftpboot/pxelinux.cfg/default
 }
 
 #TODO: The vm needs to be shutdown before calling this
-function undefineVM {
+function undefine_vm {
   vmname=${1}
-  if vMExist ${vmname};then
+  if vm_exist ${vmname};then
     virsh undefine ${vmname} &> ${OUTPUT}
-    rm -v -f ${imageDirectory}/${vmname}-*.qcow2 > ${OUTPUT}
+    rm -v -f ${IMAGE_DIRECTORY}/${vmname}-*.qcow2 > ${OUTPUT}
   fi
 }
 
-function kshead {
+function kickstart_head {
 cat <<KSHEAD
 install
 keyboard 'us'
@@ -136,7 +136,7 @@ part / --fstype="ext4" --grow --size=1
 KSHEAD
 }
 
-function kspackages {
+function kickstart_packages {
 cat <<KSPACKAGES
 %packages
 @ Core
@@ -147,7 +147,7 @@ nfs-utils
 KSPACKAGES
 }
 
-function ksend {
+function kickstart_end {
 cat <<KSEND
 %pre
 %end
@@ -167,24 +167,24 @@ KSEND
 }
 
 #TODO: This needs to be able to work to individualize the subscription-manager stuff.
-function generateKickstartFile {
+function generate_kickstart_file {
   vmname=${1} && SM=${2}
   tmp=$(uuidgen)
-  for ksPart in kshead kspackages ksend;do
+  for ksPart in kickstart_head kickstart_packages kickstart_end;do
     ${ksPart} | sed -e 's/_VMNAME_/'${vmname}'/g' -f ${SM} >> /tmp/${vmname}-${tmp}.cfg
   done
-  cp -v -f /tmp/${vmname}-${tmp}.cfg ${kickstartDirectory}/${vmname}.cfg > ${OUTPUT}
+  cp -v -f /tmp/${vmname}-${tmp}.cfg ${KICKSTART_DIRECTORY}/${vmname}.cfg > ${OUTPUT}
   rm -v -f /tmp/${vmname}-${tmp}.cfg > ${OUTPUT}
 }
 
-function deleteKickstartFile {
+function delete_kickstart_file {
   vmname=${1}
-  rm -v -f ${kickstartDirectory}/${vmname}.cfg > ${OUTPUT}
+  rm -v -f ${KICKSTART_DIRECTORY}/${vmname}.cfg > ${OUTPUT}
 }
 
-function kickstartFileExist {
+function kickstart_file_exist {
   vmname=${1}
-  if [ -f ${kickstartDirectory}/${vmname}.cfg ];then
+  if [ -f ${KICKSTART_DIRECTORY}/${vmname}.cfg ];then
     return 0
   else
     return 1
@@ -192,16 +192,16 @@ function kickstartFileExist {
 }
 
 #TODO: Define this function to add the vm to the host's /etc/hosts file
-function hostRegisterVM {
+function host_register_vm {
   vmname=${1}
 }
 
 #TODO: Define this function to delete the vm from the host's /etc/hosts file
-function hostUnRegisterVM {
+function host_unregister_vm {
   vmname=${1}
 }
 
-function networkExist {
+function network_exist {
   netname=${1}
   if virsh net-list --all | grep ${netname} > /dev/null;then
     return 0
@@ -210,7 +210,7 @@ function networkExist {
   fi
 }
 
-function primaryNetworkExist {
+function primary_network_exist {
   if virsh net-list --all | grep primary > /dev/null;then
     return 0
   else
@@ -218,7 +218,7 @@ function primaryNetworkExist {
   fi
 }
 
-function primaryNetworkRunning {
+function primary_network_running {
   if virsh net-list | grep primary > /dev/null;then
     return 0
   else
@@ -226,8 +226,8 @@ function primaryNetworkRunning {
   fi
 }
 
-function primaryNetworkInUse {
-  for vm in $(scanForRunningVMs);do
+function primary_network_in_use {
+  for vm in $(scan_for_running_vms);do
     if virsh dumpxml ${vm} | grep primary > /dev/null;then
       return 0
     fi
@@ -235,7 +235,7 @@ function primaryNetworkInUse {
   return 1
 }
 
-function pnetstart {
+function primary_network_start {
 cat <<PNETSTART
 <network>
   <name>primary</name>
@@ -248,7 +248,7 @@ cat <<PNETSTART
 PNETSTART
 }
 
-function pnetend {
+function primary_network_end {
 cat <<PNETEND
   <domain name='example.com'/>
   <ip address='192.168.122.1' netmask='255.255.255.0'>
@@ -262,8 +262,8 @@ cat <<PNETEND
 PNETEND
 }
 
-function undefinePrimaryNetwork {
-  if primaryNetworkRunning; then
+function undefine_primary_network {
+  if primary_network_running; then
     virsh net-destroy primary > ${OUTPUT}
   fi
   virsh net-undefine primary > ${OUTPUT}
@@ -271,11 +271,11 @@ function undefinePrimaryNetwork {
 
 #TODO: This needs to be cleaned up
 #TODO: Maybe use net-create instead of net-define?
-function definePrimaryNetwork {
-  if primaryNetworkExist; then
-    undefinePrimaryNetwork
+function define_primary_network {
+  if primary_network_exist; then
+    undefine_primary_network
   fi 
-  pnetstart > /tmp/primary.xml
+  primary_network_start > /tmp/primary.xml
   echo "  <dns>" >> /tmp/primary.xml
   for i in $(cat /etc/resolv.conf | \
     sed -ne 's/^nameserver \(\([0-9][0-9]*\.\)\{3\}\)/\1/p');do
@@ -294,14 +294,14 @@ function definePrimaryNetwork {
     >> /tmp/primary.xml
   echo "  </dns>" \
     >> /tmp/primary.xml
-  pnetend >> /tmp/primary.xml
+  primary_network_end >> /tmp/primary.xml
   virsh net-define /tmp/primary.xml > ${OUTPUT}
   virsh net-start primary > ${OUTPUT}
   rm -f /tmp/primary.xml
 }
 
 function snet {
-thirdOctet=${1}
+third_octet=${1}
 cat <<SNET
 <network>
   <name>secondary</name>
@@ -311,14 +311,14 @@ cat <<SNET
     </nat>
   </forward>
   <bridge name='virbr1' stp='on' delay='0'/>
-  <ip address='192.168.${thirdOctet}.1' netmask='255.255.255.0'/>
+  <ip address='192.168.${third_octet}.1' netmask='255.255.255.0'/>
 </network>
 SNET
 }
 
-function defineSecondaryNetwork {
-  thirdOctet=${1}
-  snet ${thirdOctet} > /tmp/secondary.xml
+function define_secondary_network {
+  third_octet=${1}
+  snet ${third_octet} > /tmp/secondary.xml
   virsh net-define /tmp/secondary.xml
   virsh net-start secondary
   rm -f /tmp/secondary.xml

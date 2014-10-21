@@ -3,7 +3,7 @@ DEBUG=1
 source /root/virsh-devel/functions.sh
 SM="/root/subscription_manager.sed"
 
-function generateKickstartFileTest1 {
+function generate_kickstart_file_test1 {
   generateKickstartFile test1 ${SM}
   less /var/www/html/test1.cfg
   cp /var/www/html/test1.cfg /tmp
@@ -18,13 +18,13 @@ function generateKickstartFileTest1 {
 
 generateKickstartFile rails ${SM}
 
-function generateKickstartFileTest2 {
+function generate_kickstart_file_test2 {
   generateKickstartFile test1 ${SM}
   deleteKickstartFile test1
   [ -f /var/www/html/test1.cfg ] && echo "NOT PASSED" || echo "PASSED"
 }
 
-function generateKickstartFileTest3 {
+function generate_kickstart_file_test3 {
   generateKickstartFile test1 ${SM}
   deleteKickstartFile test1
   generateKickstartFile test1 ${SM}
@@ -35,7 +35,7 @@ function generateKickstartFileTest3 {
   deleteKickstartFile test1
 }
 
-function generateKickstartFileTest4 {
+function generate_kickstart_file_test4 {
   if ! kickstartFileExist test1;then
     echo "Kickstart does not exist generating it"
     generateKickstartFile test1 ${SM}
@@ -46,7 +46,7 @@ function generateKickstartFileTest4 {
   fi
 }
 
-function definePrimaryNetworkTest1 {
+function define_primary_network_test1 {
   primaryNetworkExist || definePrimaryNetwork
   primaryNetworkExist && undefinePrimaryNetwork
 
@@ -54,7 +54,7 @@ function definePrimaryNetworkTest1 {
   ! primaryNetworkExist || undefinePrimaryNetwork
 }
 
-function definePrimaryNetworkTest2 {
+function define_primary_network_test2 {
   primaryNetworkRunning || definePrimaryNetwork
   primaryNetworkRunning && undefinePrimaryNetwork
 
@@ -75,7 +75,7 @@ function buildVMTest1 {
   deleteKickstartFile test1
 }
 
-function VMTestProcedure1 {
+function vm_test_procedure1 {
   if primaryNetworkInUse;then
     echo "RESULT:  primaryNetworkInUse"
   elif primaryNetworkRunning;then
@@ -87,7 +87,7 @@ function VMTestProcedure1 {
   fi
 }
 
-function VMTestProcedure2 {
+function vm_test_procedure2 {
   if ! primaryNetworkExist;then
     echo "RESULT:  NOT primaryNetworkExist"
   elif ! primaryNetworkRunning;then
@@ -99,7 +99,7 @@ function VMTestProcedure2 {
   fi
 }
 
-function VMTestProcedure3 {
+function vm_test_procedure3 {
   if ! primaryNetworkExist || ! primaryNetworkRunning;then
     echo "RESULT:  NOT Exist or NOT Running"
   elif ! primaryNetworkInUse;then
@@ -109,7 +109,7 @@ function VMTestProcedure3 {
   fi
 }
 
-function VMTest1ExistsPrimaryInUse {
+function vm_test_one_primary_in_use {
   primaryNetworkExist || definePrimaryNetwork
   generateKickstartFile test1 ${SM}
   defineVM test1 1 20G
@@ -117,47 +117,47 @@ function VMTest1ExistsPrimaryInUse {
   echo "TEST:  Test1ExistsPrimaryInUse"
   echo
   echo
-  VMTestProcedure1
-  VMTestProcedure2
-  VMTestProcedure3
+  vm_test_procedure1
+  vm_test_procedure2
+  vm_test_procedure3
   poweroffVM test1; undefineVM test1
 }
 
-function VMTest1DNEPrimaryRunning {
+function vm_test_one_dne_primary_running {
   primaryNetworkExist || definePrimaryNetwork
   sleep 5
   echo "TEST:  Test1DNEPrimaryRunning"
   echo
   echo
-  VMTestProcedure1
-  VMTestProcedure2
-  VMTestProcedure3
+  vm_test_procedure1
+  vm_test_procedure2
+  vm_test_procedure3
 }
 
-function VMTest1DNEPrimaryExitsNotRunning {
+function vm_test_one_dne_primary_exists_not_running {
   primaryNetworkExist || definePrimaryNetwork
   virsh net-destroy primary
   sleep 5
   echo "TEST:  Test1DNEPrimaryExistsNotRunning"
   echo
   echo
-  VMTestProcedure1
-  VMTestProcedure2
-  VMTestProcedure3
+  vm_test_procedure1
+  vm_test_procedure2
+  vm_test_procedure3
 }
 
-function VMTest1DNEPrimaryDNE {
+function vm_test_one_dne_primary_dne {
   primaryNetworkExist && undefinePrimaryNetwork
   sleep 5
   echo "TEST:  Test1DNEPrimaryDNE"
   echo
   echo
-  VMTestProcedure1
-  VMTestProcedure2
-  VMTestProcedure3
+  vm_test_procedure1
+  vm_test_procedure2
+  vm_test_procedure3
 }
 
-function defineVMTest1 {
+function define_vm_test_one {
   if primaryNetworkExist;then
     undefinePrimaryNetwork
   fi

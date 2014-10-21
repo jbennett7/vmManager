@@ -13,71 +13,71 @@ case "${subcommand}" in
   #TODO: The disk size ${3} parameter needs to have a suffix (G,M...).
   #      Need to check for this.
   vmbuild)
-    vmname=${1} && numberOfDisks=${2} && sizeOfDisk=${3}
+    vm_name=${1} && number_of_disks=${2} && size_of_disk=${3}
     if [ "$#" -ne 3 ]; then
-      echo "Usage: vmbuild vmname numberOfDisks sizeOfDisk"
+      echo "Usage: vmbuild vm_name number_of_disks size_of_disk"
       exit
-    elif vMExist ${vmname};then
-      echo "vm ${vmname} already exists, destroy it first"
+    elif vm_exist ${vm_name};then
+      echo "vm ${vm_name} already exists, destroy it first"
       exit
     fi
-    if ! primaryNetworkExist;then
-      definePrimaryNetwork
-    elif ! primaryNetworkRunning || ! primaryNetworkInUse;then
-      undefinePrimaryNetwork
-      definePrimaryNetwork
+    if ! primary_network_exist;then
+      define_primary_network
+    elif ! primary_network_running || ! primary_network_in_use;then
+      undefine_primary_network
+      define_primary_network
     fi
-    if ! kickstartFileExist ${vmname};then
-      generateKickstartFile ${vmname} ${SM}
+    if ! kickstart_file_exist ${vm_name};then
+      generate_kickstart_file ${vm_name} ${SM}
     fi
-    defineVM ${vmname} ${numberOfDisks} ${sizeOfDisk}
-    hostRegisterVM ${vmname}
+    define_vm ${vm_name} ${number_of_disks} ${size_of_disk}
+    host_register_vm ${vm_name}
   ;;
 
   vmdestroy)
-    vmname=${1}
+    vm_name=${1}
     if [ "$#" -ne 1 ];then
-      echo "Usage vmdestroy vmname"
-    elif ! vMExist ${vmname};then
+      echo "Usage vmdestroy vm_name"
+    elif ! vm_exist ${vm_name};then
       exit
     fi
-    if vMRunning ${vmname};then
-      stopVM ${vmname}
+    if vm_running ${vm_name};then
+      stop_vm ${vm_name}
     fi
-    undefineVM ${vmname}
-    hostUnRegisterVM ${vmname}
+    undefine_vm ${vm_name}
+    host_unregister_vm ${vm_name}
   ;;
 
   vmlist)
-    scanForVMs
+    scan_for_vms
   ;;
 
   vmrlist)
-    scanForRunningVMs
+    scan_for_running_vms
   ;;
 
   vmstart)
-    vmname=${1}
-    if ! primaryNetworkExist;then
-      definePrimaryNetwork
-    elif ! primaryNetworkRunning || ! primaryNetworkInUse;then
-      undefinePrimaryNetwork
-      definePrimaryNetwork
+    vm_name=${1}
+    if ! primary_network_exist;then
+      define_primary_network
+    elif ! primary_network_running || ! primary_network_in_use;then
+      undefine_primary_network
+      define_primary_network
     fi
-    startVM ${vmname}
+    start_vm ${vm_name}
   ;;
 
   vmstop)
-    vmname=${1}
-    stopVM ${vmname}
+    vm_name=${1}
+    stop_vm ${vm_name}
   ;;
 
   vmnetstop)
-    undefinePrimaryNetwork
+    undefine_primary_network
   ;;
 
   vmnetstart)
-    definePrimaryNetwork
+    define_primary_network
   ;;
 
   *)
