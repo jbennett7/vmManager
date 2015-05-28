@@ -9,6 +9,14 @@ else
   OUTPUT=/dev/null
 fi
 
+function log {
+  level=${1};msg=${2}
+  echo "${level}  ${msg}"
+  if [ ${level} = "ERROR" ]; then
+    exit 1
+  fi
+}
+
 function vm_test_function {
   echo "This is the test function1" > ${OUTPUT}
 }
@@ -81,7 +89,7 @@ timeout 1
 LABEL one
   MENU LABEL RHEL6
     kernel vmlinuz
-    append initrd=initrd.img ks=http://192.168.122.1/_VMNAME_.cfg ksdevice=eth0 noipv6
+    append initrd=initrd.img ks=http://192.168.122.1/_VMNAME_.ks ksdevice=eth0 noipv6
 PXE
 }
 
@@ -89,6 +97,7 @@ PXE
 #TODO: Define a mechanism to define the number of cpus and memory
 function define_vm {
   vmname=${1} && numberOfDisks=${2} && sizeOfDisk=${3}
+  log "function ${0}: parameters <${1}> <${2}> <${3}>"
   bstr="virt-install --noautoconsole --name ${vmname} --memory 2048 --vcpus 2"
   bstr=${bstr}" --network network:primary"
   bstr=${bstr}" --pxe"
@@ -161,7 +170,7 @@ yum-config-manager --enable rhel-server-rhscl-6-rpms
 yum -y update
 sed -i -e '/DEVICE/aDHCP_HOSTNAME="_VMNAME_.example.com"' /etc/sysconfig/network-scripts/ifcfg-eth0
 service network restart
-sed -i -e '/:${OUTPUT} ACCEPT/a-A INPUT -j ACCEPT' /etc/sysconfig/iptables
+sed -i -e '/:OUTPUT ACCEPT/a-A INPUT -j ACCEPT' /etc/sysconfig/iptables
 %end
 KSEND
 }
@@ -171,20 +180,20 @@ function generate_kickstart_file {
   vmname=${1} && SM=${2}
   tmp=$(uuidgen)
   for ksPart in kickstart_head kickstart_packages kickstart_end;do
-    ${ksPart} | sed -e 's/_VMNAME_/'${vmname}'/g' -f ${SM} >> /tmp/${vmname}-${tmp}.cfg
+    ${ksPart} | sed -e 's/_VMNAME_/'${vmname}'/g' -f ${SM} >> /tmp/${vmname}-${tmp}.ks
   done
-  cp -v -f /tmp/${vmname}-${tmp}.cfg ${KICKSTART_DIRECTORY}/${vmname}.cfg > ${OUTPUT}
-  rm -v -f /tmp/${vmname}-${tmp}.cfg > ${OUTPUT}
+  cp -v -f /tmp/${vmname}-${tmp}.ks ${KICKSTART_DIRECTORY}/${vmname}.ks > ${OUTPUT}
+  rm -v -f /tmp/${vmname}-${tmp}.ks > ${OUTPUT}
 }
 
 function delete_kickstart_file {
   vmname=${1}
-  rm -v -f ${KICKSTART_DIRECTORY}/${vmname}.cfg > ${OUTPUT}
+  rm -v -f ${KICKSTART_DIRECTORY}/${vmname}.ks > ${OUTPUT}
 }
 
 function kickstart_file_exist {
   vmname=${1}
-  if [ -f ${KICKSTART_DIRECTORY}/${vmname}.cfg ];then
+  if [ -f ${KICKSTART_DIRECTORY}/${vmname}.ks ];then
     return 0
   else
     return 1
